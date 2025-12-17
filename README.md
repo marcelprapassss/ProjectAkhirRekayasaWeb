@@ -6,7 +6,7 @@ Repository ini adalah proyek akhir mata kuliah **Rekayasa Web**.
 
 ### Pembaruan Terakhir
 - Penyesuaian validasi register & login
-- Perapihan model dan route API
+- Perapihan model, controller dan route API
 
 ---
 
