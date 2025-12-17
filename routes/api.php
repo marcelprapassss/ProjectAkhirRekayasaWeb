@@ -7,12 +7,6 @@ use App\Http\Controllers\Api\ProdukController;
 use App\Http\Controllers\Api\KategoriController;
 use App\Http\Controllers\Api\PelangganController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-*/
-
 // rute public untuk login dan daftar dapat token
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);

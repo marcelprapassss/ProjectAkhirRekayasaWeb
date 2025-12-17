@@ -9,10 +9,11 @@ use Illuminate\Support\Facades\Validator;
 
 class KategoriController extends Controller
 {
-    //fread - get
+    //read data - get (semua data)
     public function index()
     {
         $data = Kategori::all();
+
         return response()->json([
             'status' => true,
             'message' => 'Data kategori ditemukan',
@@ -20,20 +21,24 @@ class KategoriController extends Controller
         ], 200);
     }
 
-    // fcreate - post
+    //create data - post
     public function store(Request $request)
     {
-        //validasi input
         $validator = Validator::make($request->all(), [
-            'nama_kategori' => 'required',
+            'nama_kategori' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        $kategori = Kategori::create($request->all());
-        
+        $kategori = Kategori::create($request->only([
+            'nama_kategori'
+        ]));
+
         return response()->json([
             'status' => true,
             'message' => 'Data kategori berhasil ditambahkan',
@@ -41,26 +46,26 @@ class KategoriController extends Controller
         ], 201);
     }
 
-    //fget dan get by id
+    //read data - berdasarkan id - get
     public function show($id)
     {
-        $data = Kategori::find($id);
+        $kategori = Kategori::find($id);
 
-        if ($data) {
-            return response()->json([
-                'status' => true,
-                'message' => 'Data ditemukan',
-                'data' => $data
-            ], 200);
-        } else {
+        if (!$kategori) {
             return response()->json([
                 'status' => false,
-                'message' => 'Data tidak ditemukan',
+                'message' => 'Data kategori tidak ditemukan',
             ], 404);
         }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data kategori ditemukan',
+            'data' => $kategori
+        ], 200);
     }
 
-    // fupdate put-post
+    //update data - put
     public function update(Request $request, $id)
     {
         $kategori = Kategori::find($id);
@@ -72,8 +77,20 @@ class KategoriController extends Controller
             ], 404);
         }
 
-        // update data
-        $kategori->update($request->all());
+        $validator = Validator::make($request->all(), [
+            'nama_kategori' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $kategori->update($request->only([
+            'nama_kategori'
+        ]));
 
         return response()->json([
             'status' => true,
@@ -81,7 +98,8 @@ class KategoriController extends Controller
             'data' => $kategori
         ], 200);
     }
-        // fdelete
+
+    //delete data
     public function destroy($id)
     {
         $kategori = Kategori::find($id);

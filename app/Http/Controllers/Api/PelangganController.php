@@ -9,10 +9,11 @@ use Illuminate\Support\Facades\Validator;
 
 class PelangganController extends Controller
 {
-    //fread - get
+    //read data - get (semua data)
     public function index()
     {
         $data = Pelanggan::all();
+
         return response()->json([
             'status' => true,
             'message' => 'Data pelanggan ditemukan',
@@ -20,41 +21,48 @@ class PelangganController extends Controller
         ], 200);
     }
 
-    //fread - get by id
+    //read data - berdasarkan id - get
     public function show($id)
     {
-        $data = Pelanggan::find($id); 
+        $pelanggan = Pelanggan::find($id);
 
-        if ($data) {
-            return response()->json([
-                'status' => true,
-                'message' => 'Data ditemukan',
-                'data' => $data
-            ], 200);
-        } else {
+        if (!$pelanggan) {
             return response()->json([
                 'status' => false,
-                'message' => 'Data tidak ditemukan',
+                'message' => 'Data pelanggan tidak ditemukan',
             ], 404);
         }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data pelanggan ditemukan',
+            'data' => $pelanggan
+        ], 200);
     }
 
-    // fcreate - post
+    //create data - post
     public function store(Request $request)
     {
-        //validasi input email
+        // Validasi data input
         $validator = Validator::make($request->all(), [
-            'nama_pelanggan' => 'required',
-            'alamat' => 'required',
-            'no_hp' => 'required',
+            'nama_pelanggan' => 'required|string|max:255',
+            'alamat' => 'required|string',
+            'no_hp' => 'required|string|max:20',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        $pelanggan = Pelanggan::create($request->all());
-        
+        $pelanggan = Pelanggan::create($request->only([
+            'nama_pelanggan',
+            'alamat',
+            'no_hp'
+        ]));
+
         return response()->json([
             'status' => true,
             'message' => 'Data pelanggan berhasil ditambahkan',
@@ -62,7 +70,7 @@ class PelangganController extends Controller
         ], 201);
     }
 
-    // fupdate put-post
+    //update data - put
     public function update(Request $request, $id)
     {
         $pelanggan = Pelanggan::find($id);
@@ -74,8 +82,27 @@ class PelangganController extends Controller
             ], 404);
         }
 
-        // update data
-        $pelanggan->update($request->all());
+        //validasi data input
+        $validator = Validator::make($request->all(), [
+            'nama_pelanggan' => 'required|string|max:255',
+            'alamat' => 'required|string',
+            'no_hp' => 'required|string|max:20',
+        ]);
+
+        //validasi gagal
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Update data pelanggan
+        $pelanggan->update($request->only([
+            'nama_pelanggan',
+            'alamat',
+            'no_hp'
+        ]));
 
         return response()->json([
             'status' => true,
@@ -84,11 +111,12 @@ class PelangganController extends Controller
         ], 200);
     }
 
-    // fdelete
+    //delete data
     public function destroy($id)
     {
         $pelanggan = Pelanggan::find($id);
 
+        // Cek apakah data pelanggan ada
         if (!$pelanggan) {
             return response()->json([
                 'status' => false,
@@ -96,6 +124,7 @@ class PelangganController extends Controller
             ], 404);
         }
 
+        // Hapus data pelanggan
         $pelanggan->delete();
 
         return response()->json([

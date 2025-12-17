@@ -9,62 +9,23 @@ use Illuminate\Support\Facades\Validator;
 
 class ProdukController extends Controller
 {
-    //fread - get
+    //read data - get (semua data)
     public function index()
     {
         $data = Produk::all();
+
         return response()->json([
             'status' => true,
-            'message' => 'Data ditemukan',
+            'message' => 'Data produk ditemukan',
             'data' => $data
         ], 200);
     }
 
-    //fget dan get by id
+    //read data - berdasarkan id - get
     public function show($id)
     {
-        $data = Produk::find($id); // Cari data produk berdasarkan ID
-
-        if ($data) {
-            return response()->json([
-                'status' => true,
-                'message' => 'Data ditemukan',
-                'data' => $data
-            ], 200);
-        } else {
-            return response()->json([
-                'status' => false,
-                'message' => 'Data tidak ditemukan',
-            ], 404);
-        }
-    }
-
-    //fcreate - post
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'nama_produk' => 'required',
-            'harga' => 'required|numeric',
-            'kategori_id' => 'required|exists:kategoris,id',
-        ]);
-
-        //validasi input
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        $produk = Produk::create($request->all());
-        return response()->json([
-            'status' => true,
-            'message' => 'Data produk berhasil ditambahkan',
-            '$data' => $produk
-        ], 201);
-    }
-
-    //fupdate put-post
-    public function update(Request $request, $id)
-    {
         $produk = Produk::find($id);
+
         if (!$produk) {
             return response()->json([
                 'status' => false,
@@ -72,8 +33,76 @@ class ProdukController extends Controller
             ], 404);
         }
 
-        //update data
-        $produk->update($request->all());
+        return response()->json([
+            'status' => true,
+            'message' => 'Data produk ditemukan',
+            'data' => $produk
+        ], 200);
+    }
+
+    //create data - post
+    public function store(Request $request)
+    {
+        //validasi data input
+        $validator = Validator::make($request->all(), [
+            'nama_produk' => 'required|string|max:255',
+            'harga' => 'required|numeric',
+            'kategori_id' => 'required|exists:kategoris,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        //simpan data produk ke database
+        $produk = Produk::create($request->only([
+            'nama_produk',
+            'harga',
+            'kategori_id'
+        ]));
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data produk berhasil ditambahkan',
+            'data' => $produk
+        ], 201);
+    }
+
+    //update data - put
+    public function update(Request $request, $id)
+    {
+        $produk = Produk::find($id);
+
+        if (!$produk) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Data produk tidak ditemukan',
+            ], 404);
+        }
+
+        //validasi data input
+        $validator = Validator::make($request->all(), [
+            'nama_produk' => 'required|string|max:255',
+            'harga' => 'required|numeric',
+            'kategori_id' => 'required|exists:kategoris,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // update data
+        $produk->update($request->only([
+            'nama_produk',
+            'harga',
+            'kategori_id'
+        ]));
 
         return response()->json([
             'status' => true,
@@ -82,10 +111,11 @@ class ProdukController extends Controller
         ], 200);
     }
 
-    //fdelete
+    //delete data produk
     public function destroy($id)
     {
         $produk = Produk::find($id);
+
         if (!$produk) {
             return response()->json([
                 'status' => false,
@@ -93,7 +123,9 @@ class ProdukController extends Controller
             ], 404);
         }
 
+        //delete
         $produk->delete();
+
         return response()->json([
             'status' => true,
             'message' => 'Data produk berhasil dihapus',

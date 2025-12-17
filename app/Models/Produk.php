@@ -15,6 +15,11 @@ class Produk extends Model
         'kategori_id',
     ];
 
+    public function kategori()
+    {
+        return $this->belongsTo(Kategori::class);
+    }
+
     protected function serializeDate(DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');

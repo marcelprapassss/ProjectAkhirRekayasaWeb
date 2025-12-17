@@ -11,71 +11,84 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    //register admin
+    //register user baru
     public function register(Request $request)
     {
-
-        //validasi create
+        //validasi data input
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
         }
+
+        //simpan user ke database
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
-        
+
         return response()->json([
             'status' => true,
-            'message' => 'User registered successfully',
+            'message' => 'Registrasi user berhasil',
             'data' => $user
         ], 201);
     }
 
-    //login token bearer
+    //login (token bearer)
     public function login(Request $request)
     {
+        //validasi input login
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
         }
 
+        //cek email & password
         if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
                 'status' => false,
-                'message' => 'Email atau Password salah'
+                'message' => 'Email atau password salah'
             ], 401);
         }
 
-        $user = User::where('email', $request['email'])->firstOrFail();
+        //ambil data user
+        $user = User::where('email', $request->email)->first();
 
-        //buat token
+        //buat token sanctum
         $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'status' => true,
-            'message' => 'Login success',
+            'message' => 'Login berhasil',
             'access_token' => $token,
             'token_type' => 'Bearer',
         ], 200);
     }
 
-    //logout
+    //logout user (hapus semua token)
     public function logout(Request $request)
     {
+        // Menghapus semua token milik user
         $request->user()->tokens()->delete();
+
         return response()->json([
             'status' => true,
-            'message' => 'Logout success, semua token user dihapus',
+            'message' => 'Logout berhasil, semua token dihapus',
         ], 200);
     }
 }
